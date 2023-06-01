@@ -10,7 +10,7 @@
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
-        android:label="@string/app_name"
+        android:label="Travel Book"
         android:supportsRtl="true"
         android:theme="@style/Theme.Travel_book_app"
         tools:targetApi="31">
@@ -41,7 +41,7 @@
         <activity
             android:name=".view.MapsActivity"
             android:exported="true"
-            android:label="@string/title_activity_maps">
+            android:label="Map">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
