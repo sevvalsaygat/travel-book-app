@@ -1,5 +1,6 @@
 package com.example.travel_book_app.view
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.location.Location
@@ -27,6 +28,9 @@ import com.example.travel_book_app.model.Place
 import com.example.travel_book_app.roomdb.PlaceDao
 import com.example.travel_book_app.roomdb.PlaceDatabase
 import com.google.android.material.snackbar.Snackbar
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.schedulers.Schedulers
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLongClickListener {
 
@@ -41,6 +45,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
     private var selectedLongitude : Double? = null
     private lateinit var db : PlaceDatabase
     private lateinit var placeDao: PlaceDao
+    val compositeDisposable = CompositeDisposable()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,7 +65,9 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
         selectedLatitude = 0.0
         selectedLongitude= 0.0
 
-        db = Room.databaseBuilder(applicationContext,PlaceDatabase::class.java,"Places").build()
+        db = Room.databaseBuilder(applicationContext,PlaceDatabase::class.java,"Places")
+            .allowMainThreadQueries()
+            .build()
 
         placeDao = db.placeDao()
     }
@@ -137,14 +144,32 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback, GoogleMap.OnMapLon
 
     fun save(view : View) {
 
+        //Main Thread UI, Default -> CPU, IO Thread Internet/Database
+
         if (selectedLatitude != null && selectedLongitude != null) {
-            val place =
-                Place(binding.placeText.text.toString(), selectedLatitude!!, selectedLongitude!!)
-            placeDao.insert(place)
+            val place = Place(binding.placeText.text.toString(), selectedLatitude!!, selectedLongitude!!)
+            compositeDisposable.add(
+                placeDao.insert(place)
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribe(this::handleResponse)
+            )
         }
+    }
+
+    private fun handleResponse() {
+        val intent = Intent(this,MainActivity::class.java)
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        startActivity(intent)
     }
 
     fun delete(view : View) {
 
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+
+        compositeDisposable.clear()
     }
 }
