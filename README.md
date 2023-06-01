@@ -1,6 +1,6 @@
 # Travel Book
 
-![travel_book](screenshot/travel_book.mov)
+https://github.com/sevvalsaygat/travel-book-app/assets/65735565/cf183f30-1f1c-4477-bc65-a07fc774d87c
 
 ## Mockups
 
